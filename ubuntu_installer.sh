@@ -140,6 +140,45 @@ if [ "$INSTALL_MUMBLE" == 1 ]; then
   read -p "${GREEN}Mumble Server is now installed. The SuperUser password is ${YELLOW}${PASSWORD[-1]}${GREEN}. Press enter to continue.${NC}" < /dev/tty
 fi
 
+INSTALL_LETSENCRYPT=""
+while :
+do
+  read -p "${GREEN}Would you like to install Let's Encrypt for SSL certificates? (Requires a public domain name)${NC} [y/n]" INSTALL_LETSENCRYPT < /dev/tty
+  if [[ "$INSTALL_LETSENCRYPT" =~ [yY]|[yY][eE][sS] ]]; then
+    INSTALL_LETSENCRYPT=1
+    break
+  elif [[ "$INSTALL_LETSENCRYPT" =~ [nN]|[nN][oO] ]]; then
+    INSTALL_LETSENCRYPT=0
+    break
+  else
+    echo "${RED}Invalid input${NC}"
+  fi
+done
+
+if [ "$INSTALL_LETSENCRYPT" == 1 ]; then
+  read -p "${GREEN}Enter your domain name (e.g., ots.example.com): ${NC}" LE_DOMAIN < /dev/tty
+  read -p "${GREEN}Enter your email address for Let's Encrypt notifications: ${NC}" LE_EMAIL < /dev/tty
+
+  echo "${GREEN}Installing certbot...${NC}"
+  sudo NEEDRESTART_MODE=a apt install certbot python3-certbot-nginx -y
+
+  echo "${YELLOW}Note: Let's Encrypt requires ports 80 and 443 to be accessible from the internet.${NC}"
+  echo "${YELLOW}Make sure your domain $LE_DOMAIN points to this server's public IP address.${NC}"
+  read -p "${GREEN}Press enter once your DNS is configured and ports are open...${NC}" < /dev/tty
+
+  echo "${GREEN}Obtaining Let's Encrypt certificate...${NC}"
+  sudo certbot certonly --standalone --non-interactive --agree-tos --email "$LE_EMAIL" -d "$LE_DOMAIN"
+
+  if [ $? -eq 0 ]; then
+    echo "${GREEN}Let's Encrypt certificate obtained successfully!${NC}"
+    LE_CERT_PATH="/etc/letsencrypt/live/$LE_DOMAIN/fullchain.pem"
+    LE_KEY_PATH="/etc/letsencrypt/live/$LE_DOMAIN/privkey.pem"
+  else
+    echo "${RED}Failed to obtain Let's Encrypt certificate. Falling back to self-signed certificates.${NC}"
+    INSTALL_LETSENCRYPT=0
+  fi
+fi
+
 echo "${GREEN}Creating certificate authority...${NC}"
 
 mkdir -p ~/ots/ca
@@ -176,8 +215,14 @@ ExecStart=$HOME/ots/mediamtx/mediamtx $HOME/ots/mediamtx/mediamtx.yml
 WantedBy=multi-user.target
 EOF
 
-sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" ~/ots/mediamtx/mediamtx.yml
-sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" ~/ots/mediamtx/mediamtx.yml
+# Configure mediamtx SSL certificates based on Let's Encrypt or self-signed
+if [ "$INSTALL_LETSENCRYPT" == 1 ]; then
+  sudo sed -i "s~SERVER_CERT_FILE~${LE_CERT_PATH}~g" ~/ots/mediamtx/mediamtx.yml
+  sudo sed -i "s~SERVER_KEY_FILE~${LE_KEY_PATH}~g" ~/ots/mediamtx/mediamtx.yml
+else
+  sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" ~/ots/mediamtx/mediamtx.yml
+  sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" ~/ots/mediamtx/mediamtx.yml
+fi
 sudo sed -i "s~OTS_FOLDER~${HOME}/ots~g" ~/ots/mediamtx/mediamtx.yml
 
 sudo systemctl daemon-reload
@@ -203,14 +248,30 @@ sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/re
 sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_http -qO /etc/nginx/sites-available/ots_http
 sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_https -qO /etc/nginx/sites-available/ots_https
 
-sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/sites-available/ots_https
-sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/sites-available/ots_certificate_enrollment
-sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/streams-available/rabbitmq
-sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/streams-available/mediamtx
-sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" /etc/nginx/sites-available/ots_https
-sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" /etc/nginx/sites-available/ots_certificate_enrollment
-sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" /etc/nginx/streams-available/rabbitmq
-sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" /etc/nginx/streams-available/mediamtx
+# Configure nginx SSL certificates based on Let's Encrypt or self-signed
+if [ "$INSTALL_LETSENCRYPT" == 1 ]; then
+  echo "${GREEN}Configuring nginx to use Let's Encrypt certificates...${NC}"
+  sudo sed -i "s~SERVER_CERT_FILE~${LE_CERT_PATH}~g" /etc/nginx/sites-available/ots_https
+  sudo sed -i "s~SERVER_CERT_FILE~${LE_CERT_PATH}~g" /etc/nginx/sites-available/ots_certificate_enrollment
+  sudo sed -i "s~SERVER_CERT_FILE~${LE_CERT_PATH}~g" /etc/nginx/streams-available/rabbitmq
+  sudo sed -i "s~SERVER_CERT_FILE~${LE_CERT_PATH}~g" /etc/nginx/streams-available/mediamtx
+  sudo sed -i "s~SERVER_KEY_FILE~${LE_KEY_PATH}~g" /etc/nginx/sites-available/ots_https
+  sudo sed -i "s~SERVER_KEY_FILE~${LE_KEY_PATH}~g" /etc/nginx/sites-available/ots_certificate_enrollment
+  sudo sed -i "s~SERVER_KEY_FILE~${LE_KEY_PATH}~g" /etc/nginx/streams-available/rabbitmq
+  sudo sed -i "s~SERVER_KEY_FILE~${LE_KEY_PATH}~g" /etc/nginx/streams-available/mediamtx
+else
+  echo "${GREEN}Configuring nginx to use self-signed certificates...${NC}"
+  sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/sites-available/ots_https
+  sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/sites-available/ots_certificate_enrollment
+  sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/streams-available/rabbitmq
+  sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/streams-available/mediamtx
+  sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" /etc/nginx/sites-available/ots_https
+  sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" /etc/nginx/sites-available/ots_certificate_enrollment
+  sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" /etc/nginx/streams-available/rabbitmq
+  sudo sed -i "s~SERVER_KEY_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.nopass.key~g" /etc/nginx/streams-available/mediamtx
+fi
+
+# CA certificate for client verification always uses self-signed CA
 sudo sed -i "s~CA_CERT_FILE~${HOME}/ots/ca/ca.pem~g" /etc/nginx/sites-available/ots_https
 sudo sed -i "s~CA_CERT_FILE~${HOME}/ots/ca/ca.pem~g" /etc/nginx/sites-available/ots_certificate_enrollment
 
@@ -220,6 +281,27 @@ sudo ln -s /etc/nginx/streams-available/mediamtx /etc/nginx/streams-enabled/
 
 sudo systemctl enable nginx
 sudo systemctl restart nginx
+
+# Set up Let's Encrypt auto-renewal with deployment hooks
+if [ "$INSTALL_LETSENCRYPT" == 1 ]; then
+  echo "${GREEN}Setting up Let's Encrypt auto-renewal...${NC}"
+
+  # Create renewal deploy hook to restart services when certificate is renewed
+  sudo mkdir -p /etc/letsencrypt/renewal-hooks/deploy
+  sudo tee /etc/letsencrypt/renewal-hooks/deploy/restart-services.sh >/dev/null << 'EOF'
+#!/bin/bash
+systemctl restart nginx
+systemctl restart mediamtx
+EOF
+  sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/restart-services.sh
+
+  # Enable and start certbot renewal timer (usually enabled by default)
+  sudo systemctl enable certbot.timer
+  sudo systemctl start certbot.timer
+
+  echo "${GREEN}Let's Encrypt auto-renewal configured. Certificates will renew automatically.${NC}"
+  echo "${YELLOW}Certificate location: ${LE_CERT_PATH}${NC}"
+fi
 
 sudo mkdir -p /var/www/html/opentakserver
 sudo chmod a+rw /var/www/html/opentakserver
@@ -325,4 +407,10 @@ sudo systemctl restart rabbitmq-server ; \
 echo "${GREEN}Finished configuring RabbitMQ${NC}" ; \
 rm -fr $INSTALLER_DIR ; \
 deactivate ; \
-echo "${GREEN}Setup is complete and OpenTAKServer is running. You can access the Web UI at https://$(hostname -I)${NC}"
+if [ "$INSTALL_LETSENCRYPT" == 1 ]; then
+  echo "${GREEN}Setup is complete and OpenTAKServer is running with Let's Encrypt SSL!${NC}"
+  echo "${GREEN}You can access the Web UI at https://${LE_DOMAIN}${NC}"
+  echo "${YELLOW}QR code enrollment should work out of the box with your trusted SSL certificate.${NC}"
+else
+  echo "${GREEN}Setup is complete and OpenTAKServer is running. You can access the Web UI at https://$(hostname -I)${NC}"
+fi

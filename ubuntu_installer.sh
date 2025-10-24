@@ -407,10 +407,43 @@ sudo systemctl restart rabbitmq-server ; \
 echo "${GREEN}Finished configuring RabbitMQ${NC}" ; \
 rm -fr $INSTALLER_DIR ; \
 deactivate ; \
+echo "" ; \
+echo "${GREEN}============================================${NC}" ; \
+echo "${GREEN}  OpenTAKServer Installation Complete!${NC}" ; \
+echo "${GREEN}============================================${NC}" ; \
+echo "" ; \
+echo "${GREEN}Verifying service status...${NC}" ; \
+sleep 2 ; \
+OPENTAKSERVER_STATUS=$(sudo systemctl is-active opentakserver) ; \
+COT_PARSER_STATUS=$(sudo systemctl is-active cot_parser) ; \
+EUD_HANDLER_STATUS=$(sudo systemctl is-active eud_handler) ; \
+EUD_HANDLER_SSL_STATUS=$(sudo systemctl is-active eud_handler_ssl) ; \
+MEDIAMTX_STATUS=$(sudo systemctl is-active mediamtx) ; \
+NGINX_STATUS=$(sudo systemctl is-active nginx) ; \
+RABBITMQ_STATUS=$(sudo systemctl is-active rabbitmq-server) ; \
+echo "" ; \
+echo "${GREEN}Service Status:${NC}" ; \
+echo "  opentakserver:     $OPENTAKSERVER_STATUS" ; \
+echo "  cot_parser:        $COT_PARSER_STATUS" ; \
+echo "  eud_handler:       $EUD_HANDLER_STATUS" ; \
+echo "  eud_handler_ssl:   $EUD_HANDLER_SSL_STATUS" ; \
+echo "  mediamtx:          $MEDIAMTX_STATUS" ; \
+echo "  nginx:             $NGINX_STATUS" ; \
+echo "  rabbitmq-server:   $RABBITMQ_STATUS" ; \
+echo "" ; \
 if [ "$INSTALL_LETSENCRYPT" == 1 ]; then
-  echo "${GREEN}Setup is complete and OpenTAKServer is running with Let's Encrypt SSL!${NC}"
-  echo "${GREEN}You can access the Web UI at https://${LE_DOMAIN}${NC}"
-  echo "${YELLOW}QR code enrollment should work out of the box with your trusted SSL certificate.${NC}"
+  echo "${GREEN}✓ Setup complete with Let's Encrypt SSL!${NC}"
+  echo "${GREEN}✓ Web UI installed and accessible at: https://${LE_DOMAIN}${NC}"
+  echo "${YELLOW}✓ QR code enrollment will work out of the box with your trusted SSL certificate${NC}"
 else
-  echo "${GREEN}Setup is complete and OpenTAKServer is running. You can access the Web UI at https://$(hostname -I)${NC}"
-fi
+  echo "${GREEN}✓ Setup complete!${NC}"
+  echo "${GREEN}✓ Web UI installed and accessible at: https://$(hostname -I)${NC}"
+  echo "${YELLOW}Note: You're using self-signed certificates. For QR code enrollment to work without${NC}"
+  echo "${YELLOW}certificate warnings, consider re-running with Let's Encrypt support.${NC}"
+fi ; \
+echo "" ; \
+echo "${GREEN}Useful commands:${NC}" ; \
+echo "  View logs:           journalctl -u opentakserver -f" ; \
+echo "  Restart services:    sudo systemctl restart opentakserver" ; \
+echo "  Check service:       sudo systemctl status opentakserver" ; \
+echo ""

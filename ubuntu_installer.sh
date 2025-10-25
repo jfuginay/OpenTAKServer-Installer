@@ -389,6 +389,27 @@ sudo systemctl start eud_handler
 sudo systemctl enable eud_handler_ssl
 sudo systemctl start eud_handler_ssl
 
+sudo tee /etc/systemd/system/federation.service >/dev/null << EOF
+[Unit]
+Wants=network.target rabbitmq-server.service
+After=network.target rabbitmq-server.service cot_parser.service
+PartOf=opentakserver.service
+[Service]
+User=$(whoami)
+WorkingDirectory=${HOME}/ots
+ExecStart=${HOME}/.opentakserver_venv/bin/federation
+Restart=on-failure
+RestartSec=5s
+StandardOutput=append:${HOME}/ots/logs/federation.log
+StandardError=append:${HOME}/ots/logs/federation.log
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable federation
+sudo systemctl start federation
+
 echo "${GREEN}Configuring RabbitMQ...${NC}"
 sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/rabbitmq.conf -qO /etc/rabbitmq/rabbitmq.conf
 
@@ -418,6 +439,7 @@ OPENTAKSERVER_STATUS=$(sudo systemctl is-active opentakserver) ; \
 COT_PARSER_STATUS=$(sudo systemctl is-active cot_parser) ; \
 EUD_HANDLER_STATUS=$(sudo systemctl is-active eud_handler) ; \
 EUD_HANDLER_SSL_STATUS=$(sudo systemctl is-active eud_handler_ssl) ; \
+FEDERATION_STATUS=$(sudo systemctl is-active federation) ; \
 MEDIAMTX_STATUS=$(sudo systemctl is-active mediamtx) ; \
 NGINX_STATUS=$(sudo systemctl is-active nginx) ; \
 RABBITMQ_STATUS=$(sudo systemctl is-active rabbitmq-server) ; \
@@ -427,6 +449,7 @@ echo "  opentakserver:     $OPENTAKSERVER_STATUS" ; \
 echo "  cot_parser:        $COT_PARSER_STATUS" ; \
 echo "  eud_handler:       $EUD_HANDLER_STATUS" ; \
 echo "  eud_handler_ssl:   $EUD_HANDLER_SSL_STATUS" ; \
+echo "  federation:        $FEDERATION_STATUS" ; \
 echo "  mediamtx:          $MEDIAMTX_STATUS" ; \
 echo "  nginx:             $NGINX_STATUS" ; \
 echo "  rabbitmq-server:   $RABBITMQ_STATUS" ; \

@@ -36,13 +36,15 @@ echo "${GREEN} Installing OpenTAKServer from local federation branch...${NC}"
 # Use existing repo or clone if needed
 if [ -d "/home/j/Documents/OpenTAKServer" ]; then
   echo "${GREEN}Using existing OpenTAKServer repository...${NC}"
-  cd /home/j/Documents/OpenTAKServer
+  OTS_REPO_DIR="/home/j/Documents/OpenTAKServer"
+  cd "$OTS_REPO_DIR"
   git checkout feature/federation
 else
   echo "${GREEN}Cloning OpenTAKServer repository...${NC}"
   cd "$HOME"
   git clone https://github.com/jfuginay/OpenTAKServer.git
-  cd OpenTAKServer
+  OTS_REPO_DIR="$HOME/OpenTAKServer"
+  cd "$OTS_REPO_DIR"
   git checkout feature/federation
 fi
 
@@ -95,6 +97,16 @@ cd "$HOME"/.opentakserver_venv/lib/python3.*/site-packages/opentakserver
 flask db upgrade
 cd "$INSTALLER_DIR"
 echo "${GREEN}Finished initializing database!${NC}"
+
+echo "${GREEN}Creating default administrator user...${NC}"
+cd "$OTS_REPO_DIR/opentakserver"
+source "$HOME"/.opentakserver_venv/bin/activate
+python3 -m flask --app app users create administrator --password password --active
+python3 -m flask --app app roles create administrator
+python3 -m flask --app app roles add administrator administrator
+echo "${GREEN}Default admin user created (username: administrator, password: password)${NC}"
+echo "${YELLOW}IMPORTANT: Please change the default password after first login!${NC}"
+cd "$INSTALLER_DIR"
 
 INSTALL_ZEROTIER=""
 while :
@@ -332,18 +344,20 @@ echo "${GREEN}Building OpenTAKServer-UI from federation branch...${NC}"
 # Use existing UI repo or clone if needed
 if [ -d "/home/j/Documents/OpenTAKServer-UI" ]; then
   echo "${GREEN}Using existing OpenTAKServer-UI repository...${NC}"
-  cd /home/j/Documents/OpenTAKServer-UI
+  OTS_UI_REPO_DIR="/home/j/Documents/OpenTAKServer-UI"
+  cd "$OTS_UI_REPO_DIR"
   git checkout feature/federation
   git pull origin feature/federation
 else
   cd "$HOME"
   git clone https://github.com/jfuginay/OpenTAKServer-UI.git
-  cd OpenTAKServer-UI
+  OTS_UI_REPO_DIR="$HOME/OpenTAKServer-UI"
+  cd "$OTS_UI_REPO_DIR"
   git checkout feature/federation
 fi
 
 # Build the UI
-cd /home/j/Documents/OpenTAKServer-UI
+cd "$OTS_UI_REPO_DIR"
 yarn install
 yarn build
 

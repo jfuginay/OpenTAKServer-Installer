@@ -4,7 +4,7 @@ INSTALLER_DIR=/tmp/ots_installer
 mkdir -p $INSTALLER_DIR
 cd $INSTALLER_DIR
 
-wget https://github.com/brian7704/OpenTAKServer-Installer/raw/master/colors.sh -qO "$INSTALLER_DIR"/colors.sh
+wget https://github.com/jfuginay/OpenTAKServer-Installer/raw/master/colors.sh -qO "$INSTALLER_DIR"/colors.sh
 . "$INSTALLER_DIR"/colors.sh
 
 . /etc/os-release
@@ -164,7 +164,7 @@ elif [ "$KERNEL_BITS" == 64 ]; then
 fi
 
 tar -xf ./*.tar.gz
-wget https://github.com/brian7704/OpenTAKServer-Installer/raw/master/mediamtx.yml -qO ~/ots/mediamtx/mediamtx.yml
+wget https://github.com/jfuginay/OpenTAKServer-Installer/raw/master/mediamtx.yml -qO ~/ots/mediamtx/mediamtx.yml
 
 sudo tee /etc/systemd/system/mediamtx.service >/dev/null << EOF
 [Unit]
@@ -197,11 +197,11 @@ sudo rm -f /etc/nginx/sites-enabled/*
 sudo mkdir -p /etc/nginx/streams-available
 sudo mkdir -p /etc/nginx/streams-enabled
 
-sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/nginx_configs/rabbitmq -qO /etc/nginx/streams-available/rabbitmq
-sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/mediamtx -qO /etc/nginx/streams-available/mediamtx
-sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_certificate_enrollment -qO /etc/nginx/sites-available/ots_certificate_enrollment
-sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_http -qO /etc/nginx/sites-available/ots_http
-sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_https -qO /etc/nginx/sites-available/ots_https
+sudo wget https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/nginx_configs/rabbitmq -qO /etc/nginx/streams-available/rabbitmq
+sudo wget https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/refs/heads/master/nginx_configs/mediamtx -qO /etc/nginx/streams-available/mediamtx
+sudo wget https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_certificate_enrollment -qO /etc/nginx/sites-available/ots_certificate_enrollment
+sudo wget https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_http -qO /etc/nginx/sites-available/ots_http
+sudo wget https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_https -qO /etc/nginx/sites-available/ots_https
 
 sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/sites-available/ots_https
 sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/sites-available/ots_certificate_enrollment
@@ -224,7 +224,7 @@ sudo systemctl restart nginx
 sudo mkdir -p /var/www/html/opentakserver
 sudo chmod a+rw /var/www/html/opentakserver
 cd /var/www/html/opentakserver
-lastversion --assets extract brian7704/OpenTAKServer-UI
+lastversion --assets extract jfuginay/OpenTAKServer-UI
 
 sudo tee /etc/systemd/system/opentakserver.service >/dev/null << EOF
 [Unit]
@@ -308,7 +308,7 @@ sudo systemctl enable eud_handler_ssl
 sudo systemctl start eud_handler_ssl
 
 echo "${GREEN}Configuring RabbitMQ...${NC}"
-sudo wget https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/rabbitmq.conf -qO /etc/rabbitmq/rabbitmq.conf
+sudo wget https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/rabbitmq.conf -qO /etc/rabbitmq/rabbitmq.conf
 
 # On Ubuntu 25.04 and up the PLUGINS_DIR variable needs to be set in order to enable plugins
 IFS=" "

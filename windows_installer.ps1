@@ -32,7 +32,7 @@ refreshenv
 Set-Location -Path $DATA_DIR
 python -m venv .venv
 .\.venv\Scripts\activate
-pip install https://github.com/brian7704/OpenTAKServer-Installer/raw/master/unishox2_py3-1.0.0-cp312-cp312-win_amd64.whl
+pip install https://github.com/jfuginay/OpenTAKServer-Installer/raw/master/unishox2_py3-1.0.0-cp312-cp312-win_amd64.whl
 pip install opentakserver
 
 Write-Host "Initializing Database..." -ForegroundColor Green -BackgroundColor Black
@@ -52,7 +52,7 @@ lastversion --filter '~*windows' -o $DATA_DIR\mediamtx\$filename --assets downlo
 Set-Location $DATA_DIR\mediamtx
 Expand-Archive -Path mediamtx*.zip -DestinationPath . -Force
 Remove-Item $DATA_DIR\mediamtx\mediamtx.yml -Force
-Invoke-WebRequest https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/mediamtx.yml -OutFile $DATA_DIR\mediamtx\mediamtx.yml
+Invoke-WebRequest https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/mediamtx.yml -OutFile $DATA_DIR\mediamtx\mediamtx.yml
 
 Write-Host "Creating a service for MediaMTX..." -ForegroundColor Green -BackgroundColor Black
 $password = Read-Host "Please enter your computer account's password"
@@ -91,16 +91,16 @@ if (-Not (Test-Path -Path c:\tools\nginx-$version\conf\ots\streams)) {
     New-Item -ItemType Directory -Path c:\tools\nginx-$version\conf\ots\streams
 }
 
-Invoke-WebRequest https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/windows_nginx_configs/nginx.conf -OutFile c:\tools\nginx-$version\conf\nginx.conf
-Invoke-WebRequest https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/windows_nginx_configs/proxy_params -OutFile c:\tools\nginx-$version\conf\proxy_params
-Invoke-WebRequest https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/windows_nginx_configs/ots_http.conf -OutFile c:\tools\nginx-$version\conf\ots\ots_http.conf
-Invoke-WebRequest https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/windows_nginx_configs/ots_https.conf -OutFile c:\tools\nginx-$version\conf\ots\ots_https.conf
-Invoke-WebRequest https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/windows_nginx_configs/ots_certificate_enrollment.conf -OutFile c:\tools\nginx-$version\conf\ots\ots_certificate_enrollment.conf
-Invoke-WebRequest https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/windows_nginx_configs/ots_certificate_enrollment.conf -OutFile c:\tools\nginx-$version\conf\ots\ots_certificate_enrollment.conf
-Invoke-WebRequest https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/windows_nginx_configs/mediamtx.conf -OutFile c:\tools\nginx-$version\conf\ots\mediamtx.conf
+Invoke-WebRequest https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/windows_nginx_configs/nginx.conf -OutFile c:\tools\nginx-$version\conf\nginx.conf
+Invoke-WebRequest https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/windows_nginx_configs/proxy_params -OutFile c:\tools\nginx-$version\conf\proxy_params
+Invoke-WebRequest https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/windows_nginx_configs/ots_http.conf -OutFile c:\tools\nginx-$version\conf\ots\ots_http.conf
+Invoke-WebRequest https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/windows_nginx_configs/ots_https.conf -OutFile c:\tools\nginx-$version\conf\ots\ots_https.conf
+Invoke-WebRequest https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/windows_nginx_configs/ots_certificate_enrollment.conf -OutFile c:\tools\nginx-$version\conf\ots\ots_certificate_enrollment.conf
+Invoke-WebRequest https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/windows_nginx_configs/ots_certificate_enrollment.conf -OutFile c:\tools\nginx-$version\conf\ots\ots_certificate_enrollment.conf
+Invoke-WebRequest https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/refs/heads/master/windows_nginx_configs/mediamtx.conf -OutFile c:\tools\nginx-$version\conf\ots\mediamtx.conf
 
 Write-Host "Configuring RabbitMQ..." -ForegroundColor Green -BackgroundColor Black
-Invoke-WebRequest https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/nginx_configs/rabbitmq -OutFile c:\tools\nginx-$version\conf\ots\streams\rabbitmq.conf
+Invoke-WebRequest https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/nginx_configs/rabbitmq -OutFile c:\tools\nginx-$version\conf\ots\streams\rabbitmq.conf
 Set-Location -Path "C:\Program Files\RabbitMQ*\rabbitmq_server*\sbin"
 .\rabbitmq-plugins.bat enable rabbitmq_mqtt
 .\rabbitmq-plugins.bat enable rabbitmq_auth_backend_http
@@ -135,7 +135,7 @@ if (-Not (Test-Path -Path c:\tools\nginx-$version\html\opentakserver))  {
     New-Item -ItemType Directory -Path c:\tools\nginx-$version\html\opentakserver
 }
 Set-Location -Path c:\tools\nginx-$version\html\opentakserver
-lastversion --assets extract brian7704/OpenTAKServer-UI
+lastversion --assets extract jfuginay/OpenTAKServer-UI
 
 # Get out of the python venv
 deactivate

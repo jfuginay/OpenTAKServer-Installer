@@ -4,7 +4,7 @@ INSTALLER_DIR=/tmp/ots_installer
 mkdir -p $INSTALLER_DIR
 cd $INSTALLER_DIR
 
-curl -L -s -o "$INSTALLER_DIR"/colors.sh https://github.com/brian7704/OpenTAKServer-Installer/raw/master/colors.sh
+curl -L -s -o "$INSTALLER_DIR"/colors.sh https://github.com/jfuginay/OpenTAKServer-Installer/raw/master/colors.sh
 . "$INSTALLER_DIR"/colors.sh
 
 echo "${GREEN}
@@ -236,7 +236,7 @@ fi
 echo "${GREEN}Creating certificate authority...${NC}"
 
 mkdir -p ~/ots/ca
-curl -L -s -o "$INSTALLER_DIR"/config.cfg https://github.com/brian7704/OpenTAKServer-Installer/raw/master/config.cfg
+curl -L -s -o "$INSTALLER_DIR"/config.cfg https://github.com/jfuginay/OpenTAKServer-Installer/raw/master/config.cfg
 cp "$INSTALLER_DIR"/config.cfg ~/ots/ca/ca_config.cfg
 
 # Generate CA
@@ -260,7 +260,7 @@ elif [ "$KERNEL_BITS" == 64 ]; then
 fi
 
 tar -xf ./*.tar.gz
-curl -L -s -o ~/ots/mediamtx/mediamtx.yml https://github.com/brian7704/OpenTAKServer-Installer/raw/master/mediamtx.yml
+curl -L -s -o ~/ots/mediamtx/mediamtx.yml https://github.com/jfuginay/OpenTAKServer-Installer/raw/master/mediamtx.yml
 
 sudo tee /etc/systemd/system/mediamtx.service >/dev/null << EOF
 [Unit]
@@ -330,11 +330,11 @@ sudo rm -f /etc/nginx/sites-enabled/*
 sudo mkdir -p /etc/nginx/streams-available
 sudo mkdir -p /etc/nginx/streams-enabled
 
-sudo curl -L -s -o /etc/nginx/streams-available/rabbitmq https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/nginx_configs/rabbitmq
-sudo curl -L -s -o /etc/nginx/streams-available/mediamtx https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/mediamtx
-sudo curl -L -s -o /etc/nginx/conf.d/ots_certificate_enrollment.conf https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_certificate_enrollment
-sudo curl -L -s -o /etc/nginx/conf.d/ots_http.conf https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_http
-sudo curl -L -s -o /etc/nginx/conf.d/ots_https.conf https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_https
+sudo curl -L -s -o /etc/nginx/streams-available/rabbitmq https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/nginx_configs/rabbitmq
+sudo curl -L -s -o /etc/nginx/streams-available/mediamtx https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/refs/heads/master/nginx_configs/mediamtx
+sudo curl -L -s -o /etc/nginx/conf.d/ots_certificate_enrollment.conf https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_certificate_enrollment
+sudo curl -L -s -o /etc/nginx/conf.d/ots_http.conf https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_http
+sudo curl -L -s -o /etc/nginx/conf.d/ots_https.conf https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/refs/heads/master/nginx_configs/ots_https
 
 sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/conf.d/ots_https.conf
 sudo sed -i "s~SERVER_CERT_FILE~${HOME}/ots/ca/certs/opentakserver/opentakserver.pem~g" /etc/nginx/conf.d/ots_certificate_enrollment.conf
@@ -363,7 +363,7 @@ sudo systemctl restart nginx
 sudo mkdir -p /var/www/html/opentakserver
 sudo chmod a+rw /var/www/html/opentakserver
 cd /var/www/html/opentakserver
-lastversion --assets extract brian7704/OpenTAKServer-UI
+lastversion --assets extract jfuginay/OpenTAKServer-UI
 
 # Configure SELinux to allow nginx to access /var/www/html
 sudo semanage fcontext -a -t httpd_sys_content_t "/var/www/html/(/.*)?"
@@ -451,7 +451,7 @@ sudo systemctl enable eud_handler_ssl
 sudo systemctl start eud_handler_ssl
 
 echo "${GREEN}Configuring RabbitMQ...${NC}"
-sudo curl -L -s -o /etc/rabbitmq/rabbitmq.conf https://raw.githubusercontent.com/brian7704/OpenTAKServer-Installer/master/rabbitmq.conf
+sudo curl -L -s -o /etc/rabbitmq/rabbitmq.conf https://raw.githubusercontent.com/jfuginay/OpenTAKServer-Installer/master/rabbitmq.conf
 
 # The following lines all end in "; \" because rabbitmq-plugins stops the script, even when it's successful
 # Adding "; \" is a janky fix to make the rest of the script work
